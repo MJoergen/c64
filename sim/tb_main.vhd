@@ -168,19 +168,33 @@ begin
 
   ram_proc : process (clk_c64)
     --
-
     type     ram_type is array (natural range 0 to 2 ** 17 - 1) of std_logic_vector(15 downto 0);
-    variable ram_v : ram_type := (others => X"EEDD");
+
+    function get_init return ram_type is
+      variable ram_v : ram_type := (others => X"EEDD");
+    begin
+      report "get_init";
+      return ram_v;
+    end function get_init;
+
+    variable ram_v : ram_type := get_init;
+
   begin
     if rising_edge(clk_c64) then
       if sdram_ce = '1' and sdram_we = '1' and sdram_bs(0) = '0' then
         ram_v(to_integer(unsigned(sdram_addr)))(7 downto 0) := sdram_data_in(7 downto 0);
+        report "Writing 0x" & to_hstring(sdram_data_in(7 downto 0)) &
+               " to (L) 0x" & to_hstring(sdram_addr);
       end if;
       if sdram_ce = '1' and sdram_we = '1' and sdram_bs(1) = '0' then
         ram_v(to_integer(unsigned(sdram_addr)))(15 downto 8) := sdram_data_in(15 downto 8);
+        report "Writing 0x" & to_hstring(sdram_data_in(15 downto 8)) &
+               " to (H) 0x" & to_hstring(sdram_addr);
       end if;
       if sdram_ce = '1' and sdram_we = '0' and idle = '0' then
         sdram_data_out <= ram_v(to_integer(unsigned(sdram_addr)));
+        report "Reading 0x" & to_hstring(ram_v(to_integer(unsigned(sdram_addr)))) &
+               " from 0x" & to_hstring(sdram_addr);
       end if;
     end if;
   end process ram_proc;
