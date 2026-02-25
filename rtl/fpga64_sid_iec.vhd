@@ -689,63 +689,63 @@ div1m: process(clk32)				-- this process devides 32 MHz to 1MHz (for the SID)
 	                 '1' when ext_sid_cs = '1' else
 	                 '0';
 
-	sid_6581: entity work.sid_top
-	generic map (
-		g_num_voices => 11
-	)
-	port map (
-		clock => clk32,
-		reset => reset,
-
-		addr => second_sid_en & "00" & busAddr(4 downto 0),
-		wren => pulseWrRam and phi0_cpu and (cs_sid or ext_sid_cs),
-		wdata => std_logic_vector(busDo),
-		rdata => sid_do6581,
-
-		potx => pot_x,
-		poty => pot_y,
-
-		comb_wave_l => '0',
-		comb_wave_r => '0',
-
-		extfilter_en => extfilter_en,
-
-		start_iter => clk_1MHz(31),
-		sample_left => voice_l,
-		sample_right => voice_r
-	);
-
-	sid_8580_l : sid8580
-	port map (
-		reset => reset,
-		clk32 => clk32,
-		clk_1MHz => clk_1MHz(31),
-		cs => cs_sid and not second_sid_en,
-		we => pulseWrRam and phi0_cpu,
-		addr => std_logic_vector(busAddr(4 downto 0)),
-		data_in => std_logic_vector(busDo),
-		data_out => sid_do8580_l,
-		pot_x => pot_x,
-		pot_y => pot_y,
-		audio_data => audio_8580_l,
-		extfilter_en => extfilter_en
-	);
-
-	sid_8580_r : sid8580
-	port map (
-		reset => reset,
-		clk32 => clk32,
-		clk_1MHz => clk_1MHz(31),
-		cs => (cs_sid or ext_sid_cs) and second_sid_en,
-		we => pulseWrRam and phi0_cpu,
-		addr => std_logic_vector(busAddr(4 downto 0)),
-		data_in => std_logic_vector(busDo),
-		data_out => sid_do8580_r,
-		pot_x => pot_x,
-		pot_y => pot_y,
-		audio_data => audio_8580_r,
-		extfilter_en => extfilter_en
-);
+--	sid_6581: entity work.sid_top
+--	generic map (
+--		g_num_voices => 11
+--	)
+--	port map (
+--		clock => clk32,
+--		reset => reset,
+--
+--		addr => second_sid_en & "00" & busAddr(4 downto 0),
+--		wren => pulseWrRam and phi0_cpu and (cs_sid or ext_sid_cs),
+--		wdata => std_logic_vector(busDo),
+--		rdata => sid_do6581,
+--
+--		potx => pot_x,
+--		poty => pot_y,
+--
+--		comb_wave_l => '0',
+--		comb_wave_r => '0',
+--
+--		extfilter_en => extfilter_en,
+--
+--		start_iter => clk_1MHz(31),
+--		sample_left => voice_l,
+--		sample_right => voice_r
+--	);
+--
+--	sid_8580_l : sid8580
+--	port map (
+--		reset => reset,
+--		clk32 => clk32,
+--		clk_1MHz => clk_1MHz(31),
+--		cs => cs_sid and not second_sid_en,
+--		we => pulseWrRam and phi0_cpu,
+--		addr => std_logic_vector(busAddr(4 downto 0)),
+--		data_in => std_logic_vector(busDo),
+--		data_out => sid_do8580_l,
+--		pot_x => pot_x,
+--		pot_y => pot_y,
+--		audio_data => audio_8580_l,
+--		extfilter_en => extfilter_en
+--	);
+--
+--	sid_8580_r : sid8580
+--	port map (
+--		reset => reset,
+--		clk32 => clk32,
+--		clk_1MHz => clk_1MHz(31),
+--		cs => (cs_sid or ext_sid_cs) and second_sid_en,
+--		we => pulseWrRam and phi0_cpu,
+--		addr => std_logic_vector(busAddr(4 downto 0)),
+--		data_in => std_logic_vector(busDo),
+--		data_out => sid_do8580_r,
+--		pot_x => pot_x,
+--		pot_y => pot_y,
+--		audio_data => audio_8580_r,
+--		extfilter_en => extfilter_en
+--);
 
 -- -----------------------------------------------------------------------
 -- CIAs
@@ -760,14 +760,14 @@ div1m: process(clk32)				-- this process devides 32 MHz to 1MHz (for the SID)
 			cs_n => not cs_cia1,
 			rw => not busWe,
 
-			rs => std_logic_vector(busAddr)(3 downto 0),
+			rs => std_logic_vector(busAddr(3 downto 0)),
 			db_in => std_logic_vector(busDo),
 			unsigned(db_out) => cia1Do,
 
 			pa_in => std_logic_vector(cia1_pai),
-			unsigned(pa_out) => cia1_pao,
+			pa_out => cia1_pao,
 			pb_in => std_logic_vector(cia1_pbi),
-			unsigned(pb_out) => cia1_pbo,
+			pb_out => cia1_pbo,
 
 			flag_n => cass_read,
 			sp_in => sp1_in,
@@ -790,14 +790,14 @@ div1m: process(clk32)				-- this process devides 32 MHz to 1MHz (for the SID)
 			cs_n => not cs_cia2,
 			rw => not busWe,
 
-			rs => std_logic_vector(busAddr)(3 downto 0),
+			rs => std_logic_vector(busAddr(3 downto 0)),
 			db_in => std_logic_vector(busDo),
 			unsigned(db_out) => cia2Do,
 
 			pa_in => std_logic_vector(cia2_pai),
-			unsigned(pa_out) => cia2_pao,
+			pa_out => cia2_pao,
 			pb_in => std_logic_vector(cia2_pbi),
-			unsigned(pb_out) => cia2_pbo,
+			pb_out => cia2_pbo,
 
 			flag_n => flag2_n,
 			sp_in => sp2_in,
@@ -840,38 +840,38 @@ div1m: process(clk32)				-- this process devides 32 MHz to 1MHz (for the SID)
 -- -----------------------------------------------------------------------
 -- Keyboard
 -- -----------------------------------------------------------------------
-	myKeyboard: entity work.io_ps2_keyboard
-		port map (
-			clk => clk32,
-			kbd_clk => kbd_clk,
-			kbd_dat => kbd_dat,
-			interrupt => newScanCode,
-			scanCode => theScanCode
-		);
-
-	myKeyboardMatrix: entity work.fpga64_keyboard_matrix
-		port map (
-			clk => clk32,
-			theScanCode => theScanCode,
-			newScanCode => newScanCode,
-
-			ctrl1 => (not ctrl1(4 downto 0)),
-			ctrl2 => (not ctrl2(4 downto 0)),
-			pai => unsigned(cia1_pao),
-			pbi => unsigned(cia1_pbo),
-			std_logic_vector(pao) => cia1_pai,
-			std_logic_vector(pbo) => cia1_pbi,
-
-			videoKey => videoKey,
-			traceKey => open,
-			trace2Key => trace2Key,
-			reset_key => reset_key,
-			restore_key => restore_key,
-			tapPlayStopKey => tap_playstop_key,
-			disk_num => disk_num,
-
-			backwardsReadingEnabled => '1'
-		);
+--	myKeyboard: entity work.io_ps2_keyboard
+--		port map (
+--			clk => clk32,
+--			kbd_clk => kbd_clk,
+--			kbd_dat => kbd_dat,
+--			interrupt => newScanCode,
+--			scanCode => theScanCode
+--		);
+--
+--	myKeyboardMatrix: entity work.fpga64_keyboard_matrix
+--		port map (
+--			clk => clk32,
+--			theScanCode => theScanCode,
+--			newScanCode => newScanCode,
+--
+--			ctrl1 => (not ctrl1(4 downto 0)),
+--			ctrl2 => (not ctrl2(4 downto 0)),
+--			pai => unsigned(cia1_pao),
+--			pbi => unsigned(cia1_pbo),
+--			std_logic_vector(pao) => cia1_pai,
+--			std_logic_vector(pbo) => cia1_pbi,
+--
+--			videoKey => videoKey,
+--			traceKey => open,
+--			trace2Key => trace2Key,
+--			reset_key => reset_key,
+--			restore_key => restore_key,
+--			tapPlayStopKey => tap_playstop_key,
+--			disk_num => disk_num,
+--
+--			backwardsReadingEnabled => '1'
+--		);
 
 	ctrl1_fire_o <= cia1_pbo(4);
 	ctrl2_fire_o <= cia1_pao(4);
@@ -909,7 +909,7 @@ div1m: process(clk32)				-- this process devides 32 MHz to 1MHz (for the SID)
 	iec_data_o <= not cia2_pao(5);
 	iec_clk_o <= not cia2_pao(4);
 	iec_atn_o <= not cia2_pao(3);
-	ramDataOut <= "00" & unsigned(cia2_pao)(5 downto 3) & "000" when sysCycle >= CYCLE_IEC0 and sysCycle <= CYCLE_IEC3 else busDo;
+	ramDataOut <= "00" & unsigned(cia2_pao(5 downto 3)) & "000" when sysCycle >= CYCLE_IEC0 and sysCycle <= CYCLE_IEC3 else busDo;
 	ramAddr <= systemAddr;
 	ramWe <= '0' when sysCycle = CYCLE_IEC2 or sysCycle = CYCLE_IEC3 else not systemWe;
 	ramCE <= '0' when (sysCycle = CYCLE_VIC0 or sysCycle = CYCLE_VIC1 or sysCycle = CYCLE_VIC2 or
