@@ -17,7 +17,6 @@ vcom -2008 \
    ../rtl/video_vicII_656x_e.vhd \
    ../rtl/video_vicII_656x_a.vhd \
    ../rtl/rom_c64_chargen.vhd \
-   ../rtl/mos6526.vhd \
    ../rtl/fpga64_buslogic_roms_mmu.vhd \
    ../rtl/fpga64_rgbcolor.vhd \
    ../rtl/fpga64_sid_iec.vhd

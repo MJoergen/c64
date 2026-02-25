@@ -9,18 +9,17 @@ end entity tb_main;
 architecture simulation of tb_main is
 
   -- sdram layout
-  constant C_C64_ROM_START : std_logic_vector(23 downto 0) := X"0F0000"; -- kernal/basic ROM
+  constant C_C64_ROM_START : std_logic_vector(23 downto 0) := X"010000"; -- kernal/basic ROM
 
   signal   clk_c64 : std_logic                             := '1';       -- 31.527mhz (PAL), 32.727mhz(NTSC) clock source
   signal   reset_n : std_logic                             := '0';
 
-  signal   phi           : std_logic;
-  signal   idle0         : std_logic;
-  signal   idle          : std_logic;
-  signal   ces           : std_logic_vector(3 downto 0);
-  signal   reu_cycle     : std_logic;
-  signal   mist_cycle    : std_logic;
-  signal   mist_cycle_wr : std_logic;
+  signal   phi        : std_logic;
+  signal   idle0      : std_logic;
+  signal   idle       : std_logic;
+  signal   ces        : std_logic_vector(3 downto 0);
+  signal   reu_cycle  : std_logic;
+  signal   mist_cycle : std_logic;
 
   signal   c64_rnw      : std_logic;
   signal   c64_addr     : std_logic_vector(15 downto 0);
@@ -81,12 +80,10 @@ architecture simulation of tb_main is
   signal   vblank : std_logic;
 
   signal   freeze_key    : std_logic;
-  signal   nmi           : std_logic;
   signal   nmi_ack       : std_logic;
   signal   erasing       : std_logic;
   signal   c64_addr_temp : std_logic_vector(23 downto 0);
   signal   force_erase   : std_logic;
-  signal   mem_ce        : std_logic;
 
   -- DMA/REU
   signal   reu_addr  : std_logic_vector(15 downto 0);
@@ -162,8 +159,8 @@ begin
   reu_ram_di                 <= sdram_data_out(15 downto 8);
 
   -- ram_we and rom_ce are active low
-  sdram_ce                   <= (mem_ce or not rom_ce) when mist_cycle='0' else -- normal access to C64 RAM
-                                '1' when reu_ram_ce='1' and reu_cycle='1' else  -- REU access to REU RAM
+  sdram_ce                   <= (not rom_ce) when mist_cycle='0' else          -- normal access to C64 RAM
+                                '1' when reu_ram_ce='1' and reu_cycle='1' else -- REU access to REU RAM
                                 '0';
   sdram_we                   <= not ram_we when mist_cycle = '0' else
                                 reu_ram_we when reu_ram_ce = '1' and reu_cycle = '1' else
@@ -172,7 +169,7 @@ begin
   ram_proc : process (clk_c64)
     --
 
-    type     ram_type is array (natural range 0 to 65535) of std_logic_vector(15 downto 0);
+    type     ram_type is array (natural range 0 to 2 ** 17 - 1) of std_logic_vector(15 downto 0);
     variable ram_v : ram_type := (others => X"EEDD");
   begin
     if rising_edge(clk_c64) then
@@ -189,6 +186,9 @@ begin
   end process ram_proc;
 
   fpga64_inst : entity work.fpga64_sid_iec
+    generic map (
+      RESETCYCLES => 10
+    )
     port map (
       clk32                        => clk_c64,
       reset_n                      => reset_n,
@@ -228,7 +228,7 @@ begin
       ext_sid_cs                   => ext_sid_cs,
       max_ram                      => max_ram,
       irq_n                        => reu_irq_n,
-      nmi_n                        => not nmi,
+      nmi_n                        => '1',
       nmi_ack                      => nmi_ack,
       freeze_key                   => freeze_key,
       dma_n                        => dma_n,
