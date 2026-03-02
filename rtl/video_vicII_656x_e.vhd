@@ -56,7 +56,7 @@ entity video_vicii_656x is
 
 		di: in unsigned(7 downto 0);
 		diColor: in unsigned(3 downto 0);
-		do: out unsigned(7 downto 0);
+		do: out unsigned(7 downto 0) := (others => '1');
 
 		vicAddr: out unsigned(13 downto 0);
 		irq_n: out std_logic;

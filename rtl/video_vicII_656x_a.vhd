@@ -50,7 +50,7 @@ architecture rtl of video_vicii_656x is
 	signal shiftLoadEna : boolean;
 	signal idle: std_logic := '1';
 	signal rasterIrqDone : std_logic; -- Only one interrupt each rasterLine
-	signal rasterEnable: std_logic;
+	signal rasterEnable: std_logic := '1';
 
 -- BA signal
 	signal badLine : boolean; -- true if we have a badline condition
@@ -64,7 +64,7 @@ architecture rtl of video_vicii_656x is
 	signal baSprite37 : std_logic;
 
 -- Memory refresh cycles
-	signal refreshCounter : unsigned(7 downto 0);
+	signal refreshCounter : unsigned(7 downto 0) := (others => '1');
 
 -- User registers
 	signal MX : MXdef; -- Sprite X
@@ -106,7 +106,7 @@ architecture rtl of video_vicii_656x is
 
 -- borders and blanking
 	signal MainBorder: std_logic;
-	signal TBBorder: std_logic;
+	signal TBBorder: std_logic := '1';
 	signal setTBBorder: boolean;
 	signal hBlack: std_logic;
 	signal xscroll: unsigned(2 downto 0);
@@ -134,10 +134,10 @@ architecture rtl of video_vicii_656x is
 	signal IRQ: std_logic;
 
 -- Collision detection registers
-	signal collision : unsigned(7 downto 0);
-	signal M2M: unsigned(7 downto 0); -- Sprite to sprite collision
-	signal M2D: unsigned(7 downto 0); -- Sprite to character collision
-	signal M2DDelay: unsigned(7 downto 0); -- Sprite to character collision
+	signal collision : unsigned(7 downto 0) := (others => '0');
+	signal M2M: unsigned(7 downto 0) := (others => '0'); -- Sprite to sprite collision
+	signal M2D: unsigned(7 downto 0) := (others => '0'); -- Sprite to character collision
+	signal M2DDelay: unsigned(7 downto 0) := (others => '0'); -- Sprite to character collision
 	signal M2Mhit : std_logic;
 	signal M2Dhit : std_logic;
 	signal M2MClr : std_logic; -- collision register clear flag
@@ -151,9 +151,9 @@ architecture rtl of video_vicii_656x is
 	signal rasterXDelay : unsigned(9 downto 0);
 
 -- Light pen
-	signal lightPenHit: std_logic;
-	signal lpX : unsigned(7 downto 0);
-	signal lpY : unsigned(7 downto 0);
+	signal lightPenHit: std_logic := '0';
+	signal lpX : unsigned(7 downto 0) := (others => '1');
+	signal lpY : unsigned(7 downto 0) := (others => '1');
 
 -- IRQ Resets
 	signal resetLightPenIrq: std_logic;
@@ -163,7 +163,7 @@ architecture rtl of video_vicii_656x is
 
 -- Character generation
 	signal charStore: charStoreDef;
-	signal nextChar : unsigned(11 downto 0);
+	signal nextChar : unsigned(11 downto 0) := (others => '0');
 	-- Char/Pixels pair waiting to be shifted
 	signal waitingChar : unsigned(11 downto 0);
 	signal waitingChar_r : unsigned(11 downto 0);
@@ -194,8 +194,8 @@ architecture rtl of video_vicii_656x is
 	signal MYE_ff_next : unsigned(7 downto 0); -- Sprite Y expansion flipflop combinatorial
 	signal MC_ff : unsigned(7 downto 0); -- controls sprite shift-register in multicolor
 	signal MShift_stop : MFlags; -- Stop sprite shifting flag
-	signal MCurrentPixel_r : MCurrentPixelDef;
-	signal MCurrentPixel : MCurrentPixelDef;
+	signal MCurrentPixel_r : MCurrentPixelDef := (others => (others => '0'));
+	signal MCurrentPixel : MCurrentPixelDef := (others => (others => '0'));
 
 -- Current colors and pixels
 	signal pixelBgFlag: std_logic; -- For collision detection

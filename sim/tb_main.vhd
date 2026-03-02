@@ -1,7 +1,9 @@
 library ieee;
   use ieee.std_logic_1164.all;
-  use ieee.std_logic_unsigned.all;
   use ieee.numeric_std.all;
+
+library std;
+   use std.textio.all;
 
 entity tb_main is
 end entity tb_main;
@@ -10,6 +12,9 @@ architecture simulation of tb_main is
 
   -- sdram layout
   constant C_C64_ROM_START : std_logic_vector(23 downto 0) := X"010000"; -- kernal/basic ROM
+
+  constant C_ROMFILE_OFFSET : natural := to_integer(unsigned(C_C64_ROM_START));
+  constant C_ROMFILE_NAME   : string := "../../C64MEGA65/CORE/vhdl/test/tb_main/roms/std_C64.mif.hex";
 
   signal   clk_c64 : std_logic                             := '1';       -- 31.527mhz (PAL), 32.727mhz(NTSC) clock source
   signal   reset_n : std_logic                             := '0';
@@ -32,17 +37,17 @@ architecture simulation of tb_main is
   signal   sdram_ce       : std_logic;
   signal   sdram_we       : std_logic;
   signal   sdram_addr     : std_logic_vector(23 downto 0);
-  signal   sdram_data_out : std_logic_vector(15 downto 0);
+  signal   sdram_data_out : std_logic_vector(15 downto 0) := (others => '1');
   signal   sdram_data_in  : std_logic_vector(15 downto 0);
   signal   sdram_bs       : std_logic_vector(1 downto 0);
 
   --  cartridge signals LCA
   signal   cart_attached : std_logic;
-  signal   game          : std_logic;                                    -- game line to cpu
-  signal   exrom         : std_logic;                                    -- exrom line to cpu
-  signal   ioe_rom       : std_logic;
-  signal   iof_rom       : std_logic;
-  signal   max_ram       : std_logic;
+  signal   game          : std_logic := '1';                             -- game line to cpu
+  signal   exrom         : std_logic := '1';                             -- exrom line to cpu
+  signal   ioe_rom       : std_logic := '0';
+  signal   iof_rom       : std_logic := '0';
+  signal   max_ram       : std_logic := '0';
 
   signal   ioe        : std_logic;                                       -- IOE signal
   signal   iof        : std_logic;                                       -- IOF signal
@@ -50,7 +55,7 @@ architecture simulation of tb_main is
   signal   roml       : std_logic;                                       -- cart romL from buslogic LCA
   signal   romh       : std_logic;                                       -- cart romH from buslogic LCA
   signal   umaxromh   : std_logic;                                       -- VIC II Ultimax access - LCA
-  signal   ext_sid_cs : std_logic;
+  signal   ext_sid_cs : std_logic := '0';
 
   signal   cpu_hasbus : std_logic;
   signal   c64_ba     : std_logic;
@@ -170,32 +175,48 @@ begin
     --
     type     ram_type is array (natural range 0 to 2 ** 17 - 1) of std_logic_vector(15 downto 0);
 
-    function get_init return ram_type is
-      variable ram_v : ram_type := (others => X"EEDD");
+    impure function get_init return ram_type is
+      file ramfile_v  : text;
+      variable line_v : line;
+      variable data_v : bit_vector(7 downto 0);
+      variable i      : natural := C_ROMFILE_OFFSET;
+      variable ram_v  : ram_type := (others => X"EEDD");
     begin
-      report "get_init";
+      report "+get_init";
+      file_open(ramfile_v, C_ROMFILE_NAME);
+      while not endfile(ramfile_v) loop
+        readline(ramfile_v, line_v);
+        hread(line_v, data_v);
+        ram_v(i) := to_stdlogicvector(data_v & data_v);
+        i := i + 1;
+      end loop;
+      file_close(ramfile_v);
+      report "-get_init, end=0x" & to_hstring(to_unsigned(i, 17));
       return ram_v;
     end function get_init;
 
     variable ram_v : ram_type := get_init;
 
+    variable sdram_ce_d : std_logic := '0';
+
   begin
     if rising_edge(clk_c64) then
-      if sdram_ce = '1' and sdram_we = '1' and sdram_bs(0) = '0' then
+      if sdram_ce_d = '0' and sdram_ce = '1' and sdram_we = '1' and sdram_bs(0) = '0' then
         ram_v(to_integer(unsigned(sdram_addr)))(7 downto 0) := sdram_data_in(7 downto 0);
         report "Writing 0x" & to_hstring(sdram_data_in(7 downto 0)) &
                " to (L) 0x" & to_hstring(sdram_addr);
       end if;
-      if sdram_ce = '1' and sdram_we = '1' and sdram_bs(1) = '0' then
+      if sdram_ce_d = '0' and sdram_ce = '1' and sdram_we = '1' and sdram_bs(1) = '0' then
         ram_v(to_integer(unsigned(sdram_addr)))(15 downto 8) := sdram_data_in(15 downto 8);
         report "Writing 0x" & to_hstring(sdram_data_in(15 downto 8)) &
                " to (H) 0x" & to_hstring(sdram_addr);
       end if;
-      if sdram_ce = '1' and sdram_we = '0' and idle = '0' then
+      if sdram_ce_d = '0' and sdram_ce = '1' and sdram_we = '0' and idle = '0' then
         sdram_data_out <= ram_v(to_integer(unsigned(sdram_addr)));
         report "Reading 0x" & to_hstring(ram_v(to_integer(unsigned(sdram_addr)))) &
                " from 0x" & to_hstring(sdram_addr);
       end if;
+      sdram_ce_d := sdram_ce;
     end if;
   end process ram_proc;
 

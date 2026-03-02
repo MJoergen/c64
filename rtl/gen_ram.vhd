@@ -40,7 +40,7 @@ end entity;
 architecture rtl of gen_ram is
 	subtype addressRange is integer range 0 to ((2**aWidth)-1);
 	type ramDef is array(addressRange) of unsigned((dWidth-1) downto 0);
-	signal ram: ramDef;
+	signal ram: ramDef := (others => (others => '0'));
 
 	signal rAddrReg : unsigned((aWidth-1) downto 0);
 	signal qReg : unsigned((dWidth-1) downto 0);

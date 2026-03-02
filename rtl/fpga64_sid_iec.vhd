@@ -199,7 +199,6 @@ end component;
 	);
 
 	signal sysCycle : sysCycleDef := sysCycleDef'low;
-	signal sysCycleCnt : unsigned(2 downto 0);
 	signal phi0_cpu : std_logic;
 	signal cpuHasBus : std_logic;
 
@@ -219,9 +218,9 @@ end component;
 	signal turbo_dis: std_logic;
 	signal turbo: std_logic;
 
-	signal enableCpu: std_logic;
-	signal enableVic : std_logic;
-	signal enablePixel : std_logic;
+	signal enableCpu: std_logic := '0';
+	signal enableVic : std_logic := '0';
+	signal enablePixel : std_logic := '0';
 
 	signal irq_cia1: std_logic;
 	signal irq_cia2: std_logic;
@@ -248,34 +247,21 @@ end component;
 	signal reset: std_logic := '1';
 	signal reset_cnt: integer range 0 to resetCycles := 0;
 
-	signal bankSwitch: unsigned(2 downto 0);
-	
-	-- SID signals
-	signal sid_do : std_logic_vector(7 downto 0);
-	signal sid_do6581 : std_logic_vector(7 downto 0);
-	signal sid_do8580_l : std_logic_vector(7 downto 0);
-	signal sid_do8580_r : std_logic_vector(7 downto 0);
-	signal second_sid_en: std_logic;
-
 	-- CIA signals
 	signal enableCia_p : std_logic;
 	signal enableCia_n : std_logic;
 	signal cia1Do: unsigned(7 downto 0);
 	signal cia2Do: unsigned(7 downto 0);
 
-	-- keyboard
-	signal newScanCode: std_logic;
-	signal theScanCode: unsigned(7 downto 0);
-
 	-- I/O
-	signal cia1_pai: std_logic_vector(7 downto 0);
-	signal cia1_pao: std_logic_vector(7 downto 0);
-	signal cia1_pbi: std_logic_vector(7 downto 0);
-	signal cia1_pbo: std_logic_vector(7 downto 0);
-	signal cia2_pai: std_logic_vector(7 downto 0);
-	signal cia2_pao: std_logic_vector(7 downto 0);
-	signal cia2_pbi: std_logic_vector(7 downto 0);
-	signal cia2_pbo: std_logic_vector(7 downto 0);
+	signal cia1_pai: std_logic_vector(7 downto 0) := (others => '1');
+	signal cia1_pao: std_logic_vector(7 downto 0) := (others => '1');
+	signal cia1_pbi: std_logic_vector(7 downto 0) := (others => '1');
+	signal cia1_pbo: std_logic_vector(7 downto 0) := (others => '1');
+	signal cia2_pai: std_logic_vector(7 downto 0) := (others => '1');
+	signal cia2_pao: std_logic_vector(7 downto 0) := (others => '1');
+	signal cia2_pbi: std_logic_vector(7 downto 0) := (others => '1');
+	signal cia2_pbo: std_logic_vector(7 downto 0) := (others => '1');
 
 	signal debugWE: std_logic := '0';
 	signal debugData: unsigned(7 downto 0) := (others => '0');
@@ -285,22 +271,18 @@ end component;
 	signal busAddr: unsigned(15 downto 0);
 	signal busDo: unsigned(7 downto 0);
 
-	signal cpuWe: std_logic;
-	signal cpuAddr: unsigned(15 downto 0);
-	signal cpuDi: unsigned(7 downto 0);
-	signal cpuDo: unsigned(7 downto 0);
-	signal cpuIO: unsigned(7 downto 0);
+	signal cpuWe: std_logic := '0';
+	signal cpuAddr: unsigned(15 downto 0) := (others => '1');
+	signal cpuDi: unsigned(7 downto 0) := (others => '1');
+	signal cpuDo: unsigned(7 downto 0) := (others => '1');
+	signal cpuIO: unsigned(7 downto 0) := (others => '1');
 
-	signal ioF_ext: std_logic;
-	signal ioE_ext: std_logic;
-	signal io_data: unsigned(7 downto 0);
-
-	signal vicBus: unsigned(7 downto 0);
-	signal vicDi: unsigned(7 downto 0);
-	signal vicDiAec: unsigned(7 downto 0);
-	signal vicAddr: unsigned(15 downto 0);
-	signal vicData: unsigned(7 downto 0);
-	signal lastVicDi : unsigned(7 downto 0);
+	signal vicBus: unsigned(7 downto 0) := (others => '1');
+	signal vicDi: unsigned(7 downto 0) := (others => '1');
+	signal vicDiAec: unsigned(7 downto 0) := (others => '1');
+	signal vicAddr: unsigned(15 downto 0) := (others => '1');
+	signal vicData: unsigned(7 downto 0) := (others => '1');
+	signal lastVicDi : unsigned(7 downto 0) := (others => '1');
 	signal vicAddr1514: std_logic_vector(1 downto 0);
 
 	signal colorQ : unsigned(3 downto 0);
@@ -550,7 +532,7 @@ begin
 		busData => din,
 		vicAddr => vicAddr,
 		vicData => vicData,
-		sidData => unsigned(sid_do),
+		sidData => X"00",
 		colorData => colorData,
 		cia1Data => cia1Do,
 		cia2Data => cia2Do,
@@ -698,9 +680,6 @@ div1m: process(clk32)				-- this process devides 32 MHz to 1MHz (for the SID)
 	                std_logic_vector(voice_r) when sid_mode="001" else
 	                (audio_8580_r & "00")     when sid_mode="011" else
 	                (audio_8580_l & "00");
-	sid_do <= sid_do6581 when sid_mode(1)='0' else
-	          sid_do8580_l when second_sid_en='0' else
-	          sid_do8580_r;
 
 	-- CD4066 analogue switch
 	cd4066_sigA <= x"FF" when cia1_pao(7) = '0' else potB_x;
@@ -711,11 +690,11 @@ div1m: process(clk32)				-- this process devides 32 MHz to 1MHz (for the SID)
 	pot_x <= cd4066_sigA and cd4066_sigC;
 	pot_y <= cd4066_sigB and cd4066_sigD;
 
-	second_sid_en <= '0' when sid_mode(0) = '0' else
-	                 '1' when busAddr(11 downto 8) = x"4" and busAddr(5) = '1' else -- D420
-	                 '1' when busAddr(11 downto 8) = x"5" else -- D500
-	                 '1' when ext_sid_cs = '1' else
-	                 '0';
+--	second_sid_en <= '0' when sid_mode(0) = '0' else
+--	                 '1' when busAddr(11 downto 8) = x"4" and busAddr(5) = '1' else -- D420
+--	                 '1' when busAddr(11 downto 8) = x"5" else -- D500
+--	                 '1' when ext_sid_cs = '1' else
+--	                 '0';
 
 --	sid_6581: entity work.sid_top
 --	generic map (

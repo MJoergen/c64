@@ -94,7 +94,6 @@ architecture rtl of fpga64_buslogic is
 	end component;
 
 	signal charData: unsigned(7 downto 0);
-	signal basicData: unsigned(7 downto 0);
 	signal romData: std_logic_vector(7 downto 0);
 
 	signal cs_CharReg : std_logic;

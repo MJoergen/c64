@@ -31,5 +31,5 @@ vcom -2008 \
 vsim -voptargs=+acc -t ps tb_main glbl
 
 do wave.do
-run 100us
+run 10ms
 

@@ -24,11 +24,11 @@ port (
 	rnw_out         : out std_logic;
 
 	-- REU RAM interface
-	ram_addr    : out std_logic_vector(23 downto 0);
+	ram_addr    : out std_logic_vector(23 downto 0) := (others => '0');
 	ram_ce      : out std_logic;
 	ram_we      : out std_logic;
 	ram_di      : in  std_logic_vector( 7 downto 0);
-	ram_do      : out std_logic_vector( 7 downto 0)
+	ram_do      : out std_logic_vector( 7 downto 0) := (others => '0')
 );
 end reu;
 
